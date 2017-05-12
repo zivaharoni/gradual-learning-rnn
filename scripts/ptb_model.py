@@ -325,7 +325,7 @@ if not os.path.exists(directory):
     os.makedirs(directory + '/test')
     os.makedirs(directory + '/saver')
 
-data_path = "../PTB_data"
+data_path = "../data"
 raw_data = reader.ptb_raw_data(data_path)
 train_data, valid_data, test_data, _ = raw_data
 
