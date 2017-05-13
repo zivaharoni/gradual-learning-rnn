@@ -10,30 +10,31 @@ import rnn_cell_additions as dr
 
 
 class PTBModel(object):
-    """class for handling the learning of the ptb model"""
+    """class for constructing the ptb model"""
 
-    # batch_size,time_steps,vocab_size,units_num,keep_prob,forget_bias_init,lstm_layers_num,max_grad_norm
     def __init__(self,
                  config,
                  is_training,
                  inputs):
-        """ the constructor defines how the data flow of the model happens"""
+        """the constructor builds the tensorflow graph"""
+        
         self._input = inputs
         batch_size = inputs.batch_size  # num of sequences
-        time_steps = config.time_steps  # num of time steps every grad
+        time_steps = config.time_steps  # num of time steps used in BPTT
         vocab_size = config.vocab_size  # num of possible words
-        units_num = config.units_num  # num of elements in the hidden layer
+        units_num = config.units_num    # num of units in the hidden layer
         self.keep_prob = config.keep_prob
+        
         ############# embedding layer #############
         with tf.variable_scope("embedding"):
+            # the embedding matrix is allocated in the cpu to save valuable gpu memory for the model.
             with tf.device("/cpu:0"):
                 embedding_map = tf.get_variable(
                     name="embedding", shape=[vocab_size, units_num], dtype=tf.float32)
                 b_embed_in = tf.get_variable(name="b_embed_in", shape=[units_num], dtype=tf.float32)
                 embedding = tf.nn.embedding_lookup(embedding_map, self._input.input_data) + b_embed_in
-
-            if is_training and config.keep_prob_state < 1:
-                embedding_out = tf.nn.dropout(embedding, config.keep_prob)
+            if is_training and config.keep_prob_embed < 1:
+                embedding_out = tf.nn.dropout(embedding, config.keep_prob_embed)
             else:
                 embedding_out = embedding
 
@@ -48,20 +49,18 @@ class PTBModel(object):
 
         possible_cell = lstm_cell
         # if dropout is needed add a dropout wrapper
-        if is_training and config.keep_prob < 1:
+        if is_training and config.drop_output is not None:
             def possible_cell():
                 if config.variational:
-                    return dr.VariationalDropoutWrapperModified(lstm_cell(), batch_size, units_num,
-                                                                output_keep_prob=config.keep_prob,
-                                                                state_keep_prob=config.keep_prob_state)
+                    return dr.VariationalDropoutWrapperModified(lstm_cell(), 
+                                                                batch_size, 
+                                                                units_num )
                 else:
                     return dr.DropoutWrapper(
-                        lstm_cell(), output_keep_prob=config.keep_prob)
+                        lstm_cell(), output_keep_prob=config.drop_output)
 
 
-        # feed forward through lstm layers
-
-        # build the lstm layers accordingly
+        # build the lstm layers unrolled for "time_steps" times.
         self.cell = []
         self._initial_state = []
         for i in range(config.lstm_layers_num):
