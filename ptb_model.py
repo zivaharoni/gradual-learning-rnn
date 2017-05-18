@@ -402,7 +402,7 @@ class TestConfig(object):
 simulation_name = "test_sim5"
 model_config_name = "Deep_LSTM_GL_LAD"
 directory = "./" + simulation_name
-data_path = "../data"
+data_path = "./data"
 
 if not os.path.exists(directory):
     os.makedirs(directory)
