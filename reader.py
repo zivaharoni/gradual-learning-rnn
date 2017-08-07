@@ -27,7 +27,7 @@ import tensorflow as tf
 
 def _read_words(filename):
   with tf.gfile.GFile(filename, "r") as f:
-    return f.read().decode("utf-8").replace("\n", "<eos>").split()
+    return f.read().replace("\n", "<eos>").split()
 
 
 def _build_vocab(filename):
@@ -102,7 +102,7 @@ def ptb_producer(raw_data, batch_size, num_steps, name=None):
 
     data_len = tf.size(raw_data)
     batch_len = data_len // batch_size
-    data = tf.reshape(raw_data[0 : batch_size * batch_len],
+    data = tf.reshape(raw_data[0: batch_size * batch_len],
                       [batch_size, batch_len])
 
     epoch_size = (batch_len - 1) // num_steps

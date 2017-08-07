@@ -8,6 +8,16 @@ import reader
 import os
 import rnn_cell_additions as dr
 
+flags = tf.flags
+logging = tf.logging
+
+flags.DEFINE_string(
+    "model", "test", "model type. options are: GL, LAD, GL_LAD, Deep_LSTM_GL_LAD, Very_Deep_LSTM_GL_LAD, test")
+flags.DEFINE_integer(
+    "seed", 123456789, "random seed used for initialization")
+
+FLAGS = flags.FLAGS
+
 
 class PTBModel(object):
     """class for handling the ptb model"""
@@ -17,12 +27,12 @@ class PTBModel(object):
                  is_training,
                  inputs):
         """the constructor builds the tensorflow graph"""
-        
         self._input = inputs
         batch_size = inputs.batch_size  # num of sequences
         time_steps = config.time_steps  # num of time steps used in BPTT
         vocab_size = config.vocab_size  # num of possible words
         units_num = config.units_num    # num of units in the hidden layer
+        self._global_step = tf.Variable(0, name='global_step', trainable=False)
 
         # construct the embedding layer
         with tf.variable_scope("embedding"):
@@ -41,7 +51,7 @@ class PTBModel(object):
 
         # define basic lstm cell
         def lstm_cell():
-            return tf.contrib.rnn.BasicLSTMCell(num_units=units_num,
+            return tf.nn.rnn_cell.BasicLSTMCell(num_units=units_num,
                                                 forget_bias=config.forget_bias_init,
                                                 state_is_tuple=True)
         possible_cell = lstm_cell
@@ -53,8 +63,8 @@ class PTBModel(object):
                                                         batch_size,
                                                         units_num)
                 else:
-                    return dr.DropoutWrapper(lstm_cell(),
-                                             output_keep_prob=config.drop_output)
+                    return tf.nn.rnn_cell.DropoutWrapper(lstm_cell(),
+                                                         output_keep_prob=config.drop_output)
 
         # build the lstm layers and define their initial state
         self.cell = []
@@ -108,7 +118,7 @@ class PTBModel(object):
                 losses.append(tf.contrib.legacy_seq2seq.sequence_loss_by_example([logits[i]],
                                                                                  [tf.reshape(inputs.targets, [-1])],
                                                                                  [tf.ones([batch_size * time_steps],
-                                                                                  dtype=tf.float32)]))
+                                                                                          dtype=tf.float32)]))
                 self._cost.append(tf.reduce_sum(losses[i]) / batch_size)
         cost = self._cost
         self._final_state = state
@@ -136,8 +146,7 @@ class PTBModel(object):
                 optimizer.append(tf.train.GradientDescentOptimizer(self._lr))
                 # define the train operation with the normalized grad
                 self._train_op.append(optimizer[-1].apply_gradients(
-                    zip(grads[-1], tvars),
-                    global_step=tf.contrib.framework.get_or_create_global_step()))
+                    zip(grads[-1], tvars)))
 
         with tf.name_scope("learning_rate"):
             # a placeholder to assign a new learning rate
@@ -182,6 +191,10 @@ class PTBModel(object):
     def train_op(self, layer=-1):
         return self._train_op[layer]
 
+    @property
+    def global_step(self):
+        return self._global_step
+
 
 class PTBInput(object):
     """The input data."""
@@ -203,11 +216,9 @@ def run_epoch(session, model, eval_op=None, verbose=True, layer=-1):
 
     # zeros initial state
     state = session.run(model.initial_state)
-
     # if variational every epoch --> update masks
     if config.variational == 'epoch' and eval_op is not None:
         model.update_masks(session)
-
     # determine the evaluations that are done every epoch
     fetches = {
         "cost": model.cost(layer),
@@ -215,12 +226,10 @@ def run_epoch(session, model, eval_op=None, verbose=True, layer=-1):
     }
     if eval_op is not None:
         fetches["eval_op"] = eval_op
-
     for step in range(model.input.epoch_size):
         # if variational every batch --> update masks
         if config.variational == 'batch' and eval_op is not None:
             model.update_masks(session)
-
         # pass states between time batches
         feed_dict = {}
         for i, (c, h) in enumerate(model.initial_state):
@@ -228,6 +237,7 @@ def run_epoch(session, model, eval_op=None, verbose=True, layer=-1):
             feed_dict[h] = state[i].h
 
         vals = session.run(fetches, feed_dict)
+
         cost = vals["cost"]
         state = vals["final_state"]
 
@@ -242,7 +252,7 @@ def run_epoch(session, model, eval_op=None, verbose=True, layer=-1):
     return np.exp(costs / iters)
 
 
-def train_optimizer(session, layer):
+def train_optimizer(session, layer, m, mvalid, mtest, train_writer, valid_writer, test_writer):
     """ Trains the network by the given optimizer """
     global bestVal
     epochs_num = config.layer_epoch if layer != -1 else config.entire_network_epoch
@@ -251,32 +261,35 @@ def train_optimizer(session, layer):
     current_lr = config.learning_rate
     m.assign_lr(session, current_lr)
     valid_perplexity = []
-    for i in range(epochs_num):
-        if i > 1 and valid_perplexity[-1] > valid_perplexity[-2]:
-                current_lr *= config.lr_decay
-                m.assign_lr(session, current_lr)
+    for i in range(0, epochs_num):
+        start_time = time.time()
+        if len(valid_perplexity) > 2 and valid_perplexity[-1] > valid_perplexity[-2]:
+            current_lr *= config.lr_decay
+            m.assign_lr(session, current_lr)
 
         print("\nEpoch: %d Learning rate: %.6f" % (i + 1, session.run(m.lr)))
-        train_perplexity = run_epoch(session, m, eval_op=m.train_op(layer), verbose=False, layer=layer)
+        train_perplexity = run_epoch(session, m, eval_op=m.train_op(layer), verbose=True, layer=layer)
         train_sum = tf.Summary(value=[tf.Summary.Value(tag="train_perplexity_layer" + str(layer),
-                               simple_value=train_perplexity)])
+                                                       simple_value=train_perplexity)])
         train_writer.add_summary(train_sum, i + 1)
         print("Epoch: %d Train Perplexity: %.3f" % (i + 1, train_perplexity))
 
         valid_perplexity.append(run_epoch(session, mvalid, verbose=False, layer=layer))
         valid_sum = tf.Summary(value=[tf.Summary.Value(tag="valid_perplexity_layer" + str(layer),
-                               simple_value=valid_perplexity[i])])
+                                                       simple_value=valid_perplexity[-1])])
         valid_writer.add_summary(valid_sum, i + 1)
-        print("Epoch: %d Valid Perplexity: %.3f" % (i + 1, valid_perplexity[i]))
+        print("Epoch: %d Valid Perplexity: %.3f" % (i + 1, valid_perplexity[-1]))
 
         # evaluate test only when validation improves
         if bestVal > valid_perplexity[-1]:
             bestVal = valid_perplexity[-1]
             test_perplexity = run_epoch(session, mtest, verbose=False, layer=layer)
             test_sum = tf.Summary(value=[tf.Summary.Value(tag="test_perplexity_layer" + str(layer),
-                                  simple_value=test_perplexity)])
+                                                          simple_value=test_perplexity)])
             test_writer.add_summary(test_sum, i + 1)
             print("Epoch: %d Test Perplexity: %.3f" % (i + 1, test_perplexity))
+        elapsed = time.time() - start_time
+        print("Epoch: %d took %02d:%02d" % (i + 1, elapsed // 60, elapsed % 60))
 
 
 def get_config(model_config_name):
@@ -295,112 +308,120 @@ def get_config(model_config_name):
 
 
 class LADConfig(object):
-    """deep_LSTM_GL_LADConfig config."""
+    """ Layerwise Adapted dropout config.
+       The model obtains test perplexity of ~65.6 """
     init_scale = 0.04
     learning_rate = 1.0
+    lr_decay = 0.85
     max_grad_norm = 5
     time_steps = 35
-    units_num = 1500
-    entire_network_epoch = 160
-    keep_prob_embed = 0.4
-    lr_decay = 0.85
     batch_size = 20
+    units_num = 1500
     vocab_size = 10000
-    forget_bias_init = 0.0
-    lstm_layers_num = 4
+    entire_network_epoch = 160
     layer_epoch = 80
-    GL = None
-    variational = True
+    forget_bias_init = 0.0
+    lstm_layers_num = 2
+    GL = False
+    variational = 'epoch'
+    keep_prob_embed = 0.4
     drop_output = [[0.0, 0.0], [0.5, 0.25]]
     drop_state = [[0.0, 0.0], [0.5, 0.25]]
 
 
 class GLConfig(object):
-    """deep_LSTM_GL_LADConfig config."""
+    """ Gradual Learning config.
+       The model obtains test perplexity of ~66.7 """
     init_scale = 0.04
     learning_rate = 1.0
+    lr_decay = 0.85
     max_grad_norm = 5
     time_steps = 35
-    units_num = 1500
-    entire_network_epoch = 80
-    keep_prob_embed = 0.4
-    lr_decay = 0.85
     batch_size = 20
+    units_num = 1500
     vocab_size = 10000
-    forget_bias_init = 0.0
-    lstm_layers_num = 4
+    entire_network_epoch = 80
     layer_epoch = 80
-    GL = 'epoch'
-    variational = True
+    forget_bias_init = 0.0
+    lstm_layers_num = 2
+    GL = True
+    variational = 'epoch'
+    keep_prob_embed = 0.4
     drop_output = [[0.4, 0.0], [0.4, 0.4]]
     drop_state = [[0.4, 0.0], [0.4, 0.4]]
 
 
 class GLLADConfig(object):
-    """deep_LSTM_GL_LADConfig config."""
+    """ Gradual Learning + Layerwise Adapted dropout config.
+       The model obtains test perplexity of  ~64.5 """
     init_scale = 0.04
     learning_rate = 1.0
+    lr_decay = 0.85
     max_grad_norm = 5
     time_steps = 35
-    units_num = 1500
-    entire_network_epoch = 50
-    keep_prob_embed = 0.4
-    lr_decay = 0.85
     batch_size = 20
+    units_num = 1500
     vocab_size = 10000
-    forget_bias_init = 0.0
-    lstm_layers_num = 4
+    entire_network_epoch = 80
     layer_epoch = 80
-    GL = 'epoch'
-    variational = True
+    forget_bias_init = 0.0
+    lstm_layers_num = 2
+    GL = True
+    variational = 'epoch'
+    keep_prob_embed = 0.4
     drop_output = [[0.3, 0.0], [0.5, 0.25]]
     drop_state = [[0.3, 0.0], [0.5, 0.25]]
 
 
 class DeepGLLADConfig(object):
-    """deep_LSTM_GL_LADConfig config."""
+    """ 5-layered architecture that combines GL+LAD.
+       The model obtains test perplexity of  ~61.7 """
     init_scale = 0.04
-    learning_rate = 1.0
+    learning_rate = 1.
+    lr_decay = 0.85
     max_grad_norm = 5
-    time_steps = 35
-    units_num = 10
-    entire_network_epoch = 10
-    keep_prob_embed = 0.4
-    lr_decay = 0.8
+    time_steps = 25
     batch_size = 20
+    units_num = 1500
     vocab_size = 10000
+    entire_network_epoch = 80
+    layer_epoch = 80
     forget_bias_init = 0.0
-    lstm_layers_num = 4
-    layer_epoch = 2
-    GL = 'epoch'
-    variational = True
-    drop_output = [[0.3, 0.0, 0.0, 0.0], [0.4, 0.3, 0.0, 0.0], [0.7, 0.5, 0.25, 0.0], [0.75, 0.5, 0.3, 0.25]]
-    drop_state = [[0.3, 0.0, 0.0, 0.0], [0.4, 0.3, 0.0, 0.0], [0.7, 0.5, 0.25, 0.0], [0.75, 0.5, 0.3, 0.25]]
+    lstm_layers_num = 5
+    GL = True
+    variational = 'epoch'
+    keep_prob_embed = 0.4
+    drop_output = [[0.3, 0.0, 0.0, 0.0, 0.0], [0.5, 0.25, 0.0, 0.0, 0.0],
+                   [0.5, 0.4, 0.25, 0.0, 0.0], [0.5, 0.5, 0.4, 0.25, 0.0],
+                   [0.5, 0.5, 0.5, 0.4, 0.25]]
+    drop_state = [[0.3, 0.0, 0.0, 0.0, 0.0], [0.5, 0.5, 0.0, 0.0, 0.0],
+                  [0.5, 0.5, 0.4, 0.0, 0.0], [0.5, 0.5, 0.5, 0.4, 0.0],
+                  [0.5, 0.5, 0.5, 0.5, 0.4]]
 
 
 class TestConfig(object):
     """ for functionality check """
     init_scale = 0.04
     learning_rate = 1.0
+    lr_decay = 0.85
     max_grad_norm = 5
     time_steps = 35
-    units_num = 10
-    entire_network_epoch = 10
-    keep_prob_embed = 0.4
-    lr_decay = 0.8
     batch_size = 20
+    units_num = 10
     vocab_size = 10000
+    entire_network_epoch = 5
+    layer_epoch = 5
     forget_bias_init = 0.0
-    lstm_layers_num = 4
-    layer_epoch = 2
-    GL = 'epoch'
-    variational = True
-    drop_output = [[0.3, 0.0, 0.0, 0.0], [0.4, 0.3, 0.0, 0.0], [0.7, 0.5, 0.25, 0.0], [0.75, 0.5, 0.3, 0.25]]
-    drop_state = [[0.3, 0.0, 0.0, 0.0], [0.4, 0.3, 0.0, 0.0], [0.7, 0.5, 0.25, 0.0], [0.75, 0.5, 0.3, 0.25]]
+    lstm_layers_num = 2
+    GL = True
+    variational = 'epoch'
+    keep_prob_embed = 0.4
+    drop_output = [[0.4, 0.0], [0.4, 0.4]]
+    drop_state = [[0.4, 0.0], [0.4, 0.4]]
 
-
-simulation_name = "test_sim5"
-model_config_name = "Deep_LSTM_GL_LAD"
+seed = FLAGS.seed
+simulation_name = FLAGS.model + "_seed_" + str(seed)
+model_config_name = FLAGS.model
 directory = "./" + simulation_name
 data_path = "./data"
 
@@ -417,60 +438,81 @@ config = get_config(model_config_name)
 eval_config = get_config(model_config_name)
 eval_config.batch_size = 1
 eval_config.num_steps = 35
-with tf.Graph().as_default():
-    initializer = tf.random_uniform_initializer(-config.init_scale,
-                                                config.init_scale)
+bestVal = config.vocab_size
 
-with tf.name_scope("Train"):
-    train_input = PTBInput(config=config, data=train_data, name="TrainInput")
 
-    with tf.variable_scope("Model", reuse=None, initializer=initializer):
-        m = PTBModel(is_training=True, config=config, inputs=train_input)
+def main(_):
+    with tf.Graph().as_default() as graph:
+        initializer = tf.random_uniform_initializer(-config.init_scale,
+                                                    config.init_scale)
+        tf.set_random_seed(seed)
 
-    train_writer = tf.summary.FileWriter(directory + '/train',
-                                         graph=tf.get_default_graph())
-    tf.summary.scalar("Training Loss", m.cost(layer=-1))
-    tf.summary.scalar("Learning Rate", m.lr)
+        with tf.name_scope("Train"):
+            train_input = PTBInput(config=config, data=train_data, name="TrainInput")
 
-with tf.name_scope("Valid"):
-    valid_input = PTBInput(config=config, data=valid_data, name="ValidInput")
-    with tf.variable_scope("Model", reuse=True, initializer=initializer):
-        mvalid = PTBModel(is_training=False, config=config, inputs=valid_input)
-    tf.summary.scalar("Validation Loss", mvalid.cost(layer=-1))
+            with tf.variable_scope("Model", reuse=None, initializer=initializer):
+                m = PTBModel(is_training=True, config=config, inputs=train_input)
 
-    valid_writer = tf.summary.FileWriter(directory + '/valid')
+            train_writer = tf.summary.FileWriter(directory + '/train',
+                                                 graph=tf.get_default_graph())
+            tf.summary.scalar("Training Loss", m.cost(layer=-1))
+            tf.summary.scalar("Learning Rate", m.lr)
+            tf.summary.scalar("global step", m.global_step)
 
-with tf.name_scope("Test"):
-    test_input = PTBInput(config=eval_config, data=test_data, name="TestInput")
-    with tf.variable_scope("Model", reuse=True, initializer=initializer):
-        mtest = PTBModel(is_training=False, config=eval_config, inputs=test_input)
-    tf.summary.scalar("Test Loss", mtest.cost(layer=-1))
-    test_writer = tf.summary.FileWriter(directory + '/test')
+        with tf.name_scope("Valid"):
+            valid_input = PTBInput(config=config, data=valid_data, name="ValidInput")
+            with tf.variable_scope("Model", reuse=True, initializer=initializer):
+                mvalid = PTBModel(is_training=False, config=config, inputs=valid_input)
+            tf.summary.scalar("Validation Loss", mvalid.cost(layer=-1))
 
-sv = tf.train.Supervisor(logdir=directory + '/saver')
-with sv.managed_session() as session:
-    bestVal = config.vocab_size
-    current_lr = None
+            valid_writer = tf.summary.FileWriter(directory + '/valid')
 
-    # Gradual Training
-    if config.GL:
-        print("\ntraining gradually...\n")
-        for layer in range(config.lstm_layers_num-1):
-            print("training layer #%d" % (layer + 1))
-            start_time = time.time()
-            train_optimizer(session, layer)
-            elapsed = time.time() - start_time
-            print("optimization of layer %d took %02d:%02d:%02d\n" %
-                  (layer + 1, elapsed // 3600, (elapsed // 60) % 60, elapsed % 60))
+        with tf.name_scope("Test"):
+            test_input = PTBInput(config=eval_config, data=test_data, name="TestInput")
+            with tf.variable_scope("Model", reuse=True, initializer=initializer):
+                mtest = PTBModel(is_training=False, config=eval_config, inputs=test_input)
+            tf.summary.scalar("Test Loss", mtest.cost(layer=-1))
+            test_writer = tf.summary.FileWriter(directory + '/test')
 
-    # Traditional Training
-    m.update_drop_params(session, config.drop_output[-1], config.drop_state[-1])
-    if current_lr is None:
-        current_lr = config.learning_rate
-    print("training the entire network...\n")
-    start_time = time.time()
-    train_optimizer(session, -1)
-    end_time = time.time()
-    elapsed = end_time - start_time
-    print("optimization took %02d:%02d:%02d\n" % (elapsed // 3600, (elapsed // 60) % 60, elapsed % 60))
+        saver = tf.train.Saver()
 
+    sess_config = tf.ConfigProto()
+    sess_config.gpu_options.allow_growth = True
+    with tf.Session(graph=graph, config=sess_config) as session:
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(sess=session, coord=coord)
+        session.run(tf.global_variables_initializer())
+        # Gradual Training
+        if config.GL:
+            print("\ntraining gradually...\n")
+            saver.save(session, directory + '/saver/model', global_step=0)
+            for layer in range(0, config.lstm_layers_num-1):
+                print("training layer #%d" % (layer + 1))
+                start_time = time.time()
+                train_optimizer(session, layer, m, mvalid, mtest, train_writer, valid_writer, test_writer)
+                elapsed = time.time() - start_time
+                print("optimization of layer %d took %02d:%02d:%02d\n" %
+                      (layer + 1, elapsed // 3600, (elapsed // 60) % 60, elapsed % 60))
+                # save model
+                saver.save(session, directory + '/saver/model', global_step=layer+1)
+        # Traditional Training
+        m.update_drop_params(session, config.drop_output[-1], config.drop_state[-1])
+
+        print("training the entire network...\n")
+        start_time = time.time()
+        train_optimizer(session, -1, m, mvalid, mtest, train_writer, valid_writer, test_writer)
+        end_time = time.time()
+        elapsed = end_time - start_time
+        print("optimization took %02d:%02d:%02d\n" % (elapsed // 3600, (elapsed // 60) % 60, elapsed % 60))
+        # save model
+        saver.save(session, directory + '/saver/model', global_step=config.lstm_layers_num)
+
+        coord.request_stop()
+        coord.join(threads)
+
+    train_writer.close()
+    valid_writer.close()
+    test_writer.close()
+
+if __name__ == "__main__":
+    tf.app.run()

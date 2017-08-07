@@ -1,7 +1,7 @@
 import tensorflow as tf
+from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import random_ops
-from tensorflow.python.framework import ops
 
 core_rnn_cell = tf.contrib.rnn
 
@@ -57,7 +57,7 @@ class VariationalDropoutWrapper(core_rnn_cell.RNNCell):
         (c, h) = state
         with tf.name_scope("Dropout"):
             if (isinstance(self._output_keep_prob, float) and
-               self._output_keep_prob == 1):
+                        self._output_keep_prob == 1):
                 return
             new_h_out = math_ops.div(h, self._output_keep_prob) * self._output_mask
             new_h_fb = math_ops.div(h, self._state_keep_prob) * self._state_mask
