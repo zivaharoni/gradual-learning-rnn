@@ -1,13 +1,13 @@
-class DeepGLLADConfig(object):
-    """ 4-layered architecture that combines GL+LAD.
-       The model obtains test perplexity of  ???? """
+class ParallelConfig(object):
+    """ Layerwise Adapted dropout config.
+       The model obtains test perplexity of ~65.6 """
     init_scale = 0.05
-    learning_rate = 0.2
-    lr_decay = 0.85
+    learning_rate = 0.05
+    lr_decay = 0.8
     max_grad_norm = 5
     time_steps = 50
-    batch_size = 128
-    units_num = 1125
+    batch_size = 1200
+    units_num = 1000
     vocab_size = 205
     entire_network_epoch = 80
     layer_epoch = 80
