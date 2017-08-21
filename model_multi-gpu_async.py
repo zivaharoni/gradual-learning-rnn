@@ -131,15 +131,14 @@ class PTBModel(object):
 
         # define an optimizer with the averaged gradients
         with tf.name_scope("optimizer"):
-            optimizer = []
             self._train_op = []
-            for j in range(self._gpu_num):
-                gpu_train_op = []
-                for i in range(config.lstm_layers_num):
+            for i in range(config.lstm_layers_num):
+                layer_train_op = []
+                for j in range(self._gpu_num):
                     opt = tf.train.GradientDescentOptimizer(self._lr)
-                    gpu_train_op.append(opt.apply_gradients(
+                    layer_train_op.append(opt.apply_gradients(
                         zip(all_grads[j][i], tvars), global_step=self._global_step))
-                self._train_op.append(gpu_train_op)
+                self._train_op.append(layer_train_op)
 
     def reduce_loss(self, all_loss):
         """ average the loss obtained by gpus
