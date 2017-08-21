@@ -15,8 +15,10 @@ flags = tf.flags
 logging = tf.logging
 
 # flags for distributed tf
-flags.DEFINE_integer(
-    "gpu_num", 2, "#of gpus")
+flags.DEFINE_string(
+    "gpu_devices", "/gpu:0", "list gpu devices")
+flags.DEFINE_string(
+    "cpu_device", "/cpu:0", "name cpu device")
 
 # flags for error handling
 flags.DEFINE_string(
@@ -46,8 +48,9 @@ class PTBModel(object):
         self._input = inputs
         vocab_size = config.vocab_size  # num of possible words
         units_num = config.units_num  # num of units in the hidden layer
-        self._gpu_num = config.gpu_num  # #og gpu used in model
-
+        self._gpu_devices = FLAGS.gpu_devices.split(",")
+        self._gpu_num = len(self._gpu_devices)
+        self._cpu_device = FLAGS.cpu_device
         with tf.name_scope("model_variables"):
             with tf.name_scope("global_step"):
                 self._global_step = tf.Variable(0, name='global_step', trainable=False)
@@ -62,7 +65,7 @@ class PTBModel(object):
         self._final_state = []
 
         # construct the embedding layer on cpu:0
-        with tf.variable_scope("embedding"), tf.device("/cpu:0"):
+        with tf.variable_scope("embedding"), tf.device(self._cpu_device):
             # the embedding matrix is allocated in the cpu to save valuable gpu memory for the model.
             embedding_map = tf.get_variable(
                 name="embedding", shape=[vocab_size, units_num], dtype=tf.float32)
@@ -89,8 +92,8 @@ class PTBModel(object):
         all_grads = []  # 2D array [i,j] element stands for the grad of the j-th layer of the i-th gpu
 
         with tf.variable_scope("gpus"):
-            for i, gpu in range(self._gpu_num):
-                with tf.device("/gpu:%d" % i), tf.name_scope("gpu-%d" % i):
+            for i in range(self._gpu_num):
+                with tf.device(self._gpu_devices[i]), tf.name_scope("gpu-%d" % i):
                     loss, grads, cell, initial_state, final_state = self.complete_model(embedding_out[i],
                                                                                         embedding_map,
                                                                                         config,
@@ -506,7 +509,6 @@ raw_data = reader(data_path)
 train_data, valid_data, test_data, _ = raw_data
 
 config = get_config(model_config_name)
-config.gpu_num = FLAGS.gpu_num
 
 bestVal = config.vocab_size
 
