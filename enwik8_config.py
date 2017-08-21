@@ -2,7 +2,7 @@ class ParallelConfig(object):
     """ Layerwise Adapted dropout config.
        The model obtains test perplexity of ~65.6 """
     init_scale = 0.05
-    learning_rate = 0.05
+    learning_rate = 0.2
     lr_decay = 0.8
     max_grad_norm = 5
     time_steps = 50
