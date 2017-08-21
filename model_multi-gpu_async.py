@@ -89,7 +89,7 @@ class PTBModel(object):
         all_grads = []  # 2D array [i,j] element stands for the grad of the j-th layer of the i-th gpu
 
         with tf.variable_scope("gpus"):
-            for i, gpu in range(self._gpu_num):
+            for i in range(self._gpu_num):
                 with tf.device("/gpu:%d" % i), tf.name_scope("gpu-%d" % i):
                     loss, grads, cell, initial_state, final_state = self.complete_model(embedding_out[i],
                                                                                         embedding_map,
@@ -111,10 +111,6 @@ class PTBModel(object):
         with tf.name_scope("reduce_loss"):
             self._loss = self.reduce_loss(all_loss)
 
-        # average grads ; sync point
-        with tf.name_scope("average_grads"):
-            averaged_grads = self.average_grads(all_grads)
-
         # set learning rate as variable in order to anneal it throughout training
         with tf.name_scope("learning_rate"):
             self._lr = tf.Variable(0.0, trainable=False)
@@ -132,48 +128,13 @@ class PTBModel(object):
         with tf.name_scope("optimizer"):
             optimizer = []
             self._train_op = []
-            for i in range(config.lstm_layers_num):
-                optimizer.append(tf.train.GradientDescentOptimizer(self._lr))
-                self._train_op.append(optimizer[i].apply_gradients(
-                    zip(averaged_grads[i], tvars), global_step=self._global_step))
-
-    @staticmethod
-    def average_grads(all_grads):
-        """ average the grads of the currently trained layer
-
-        Args:
-            grads: 2D array, the [i,j] element stands for the loss of the j-th layer of the i-th gpu
-
-        Returns:
-            grads: a list of the averaged grads for each layer
-        """
-
-        average_layer_grads = []
-        for layer in range(config.lstm_layers_num):
-            layer_grads = [all_grads[i][layer][:] for i in range(len(all_grads))]
-            grads = []
-            for grad_and_vars in zip(*layer_grads):
-                # Note that each grad_and_vars looks like the following:
-                #   ((grad0_gpu0, var0_gpu0), ... , (grad0_gpuN, var0_gpuN))
-                gpu_grads = []
-
-                for g in grad_and_vars:
-                    if g is not None:
-                        # Add 0 dimension to the gradients to represent the tower.
-                        expanded_g = tf.expand_dims(g, 0)
-
-                        # Append on a 'tower' dimension which we will average over below.
-                        gpu_grads.append(expanded_g)
-                if g is not None:
-                    # Average over the 'tower' dimension.
-                    grad = tf.concat(axis=0, values=gpu_grads)
-                    grad = tf.reduce_mean(grad, 0)
-                else:
-                    grad = g
-
-                grads.append(grad)
-            average_layer_grads.append(grads)
-        return average_layer_grads
+            for j in range(self._gpu_num):
+                gpu_optimizers = []
+                for i in range(config.lstm_layers_num):
+                    gpu_optimizers.append(tf.train.GradientDescentOptimizer(self._lr))
+                    self._train_op.append(gpu_optimizers[i].apply_gradients(
+                        zip(all_grads[j][i], tvars), global_step=self._global_step))
+                optimizer.append(gpu_optimizers)
 
     def reduce_loss(self, all_loss):
         """ average the loss obtained by gpus
@@ -305,8 +266,8 @@ class PTBModel(object):
     def loss(self, layer=-1):
         return self._loss[layer]
 
-    def train_op(self, layer=-1):
-        return self._train_op[layer]
+    def train_op(self, layer=-1, gpu=0):
+        return self._train_op[gpu][layer]
 
     @property
     def input(self):
