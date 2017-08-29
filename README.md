@@ -11,4 +11,5 @@ The file ptb_config.py contains all the configurations that were tested in the a
 + Deep_GL_LAD - five-layered LSTM trained gradually with Layer-wise Adjusted Dropout.
 
 To evaluate one of the configurations run the following:
+
 `python ptb_model.py --model <model_name>`
