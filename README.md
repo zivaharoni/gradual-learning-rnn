@@ -1,7 +1,7 @@
 # Gradual Learning of Deep Recurrent Neuarl Networks
 
 This repository is a self-contained code of the work in the Gradual Learning of Deep Recurrent Neural Networks.
-The package contains a python implementation of the model as depicted in (XXXXXXX).
+The package contains a python implementation of the model as depicted in (https://arxiv.org/abs/1708.08863).
 
 ### Penn TreeBank
 The file ptb_config.py contains all the configurations that were tested in the article. Choosing one of them is done by the model flag from the command line. 
