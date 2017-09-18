@@ -16,6 +16,7 @@ The file ptb_config.py contains all the configurations that were tested in the a
 
 The possible models names are:
 
++ LWGC - two-layered LSTM trained gradually with layerwise gradient clipping.
 + GL - two-layered LSTM trained gradually.
 + LAD - two-layered LSTM trained with Layer-wise Adjusted Dropout.
 + GL_LAD - two-layered LSTM trained gradually with Layer-wise Adjusted Dropout.
