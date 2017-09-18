@@ -1,24 +1,25 @@
 import numpy as np
 
 class TestConfig(object):
-    """ 5-layered architecture that combines GL+LAD.
-       The model obtains test perplexity of  ~61.7 """
-    units_num = 1150
-    embedding_size = 400
+    """Test config for quick system compatibility check.
+    Run using this configuration for short check.
+    """
+    units_num = 100
+    embedding_size = 100
     init_scale = 1.0 / np.sqrt(units_num)
     emb_init_scale = 0.1
-    lr = 30.0
+    lr = 1.0
     lr_decay = 1.0
-    lwgc_grad_norm = [0.08,0.18,0.22]
-    max_grad_norm = [0.25]
-    time_steps = 35
-    batch_size = 40
+    lwgc_grad_norm = [1.0,1.0]
+    max_grad_norm = [1.0]
+    time_steps = 25
+    batch_size = 20
     vocab_size = 10000
-    layer_epoch = 300
+    layer_epoch = 5
     entire_network_epoch = layer_epoch
     forget_bias_init = 0.0
-    lstm_layers_num = 2
-    LWGC = False
+    lstm_layers_num = 1
+    LWGC = True
     GL = False
     DC = False
     AR = 2.0
@@ -26,10 +27,10 @@ class TestConfig(object):
     restore = False
     restore_path = ''
     variational = 'epoch'
-    opt = 'asgd'
+    opt = 'sgd'
     keep_prob_embed = 0.9
-    drop_output = [[0.3, 0.0], [0.6, 0.6]]
-    drop_state = [[0.3, 0.0], [0.7, 0.7]]
+    drop_output = [[0.5]]
+    drop_state = [[0.5]]
 
 class LWGCConfig(object):
     """ 5-layered architecture that combines GL+LAD.
@@ -41,7 +42,7 @@ class LWGCConfig(object):
     lr = 1.0
     lr_decay = 0.9
     lwgc_grad_norm = [1.5,2.0,5.0]
-    max_grad_norm = [0.25]
+    max_grad_norm = [5.0]
     time_steps = 35
     batch_size = 30
     vocab_size = 10000
