@@ -14,11 +14,16 @@
 
 import os
 import time
+import argparse
 
+parser = argparse.ArgumentParser(description='PyTorch PennTreeBank LSTM Language Model')
+parser.add_argument('--gpu', type=str, default='0',
+                    help='set gpu device ID (-1 for cpu)')
+args = parser.parse_args()
 ###############################################################################
 # General Settings
 ###############################################################################
-gpu = '0,1,2'
+gpu = args.gpu
 dirs = 'WIKITEXT-2'
 batch_size = 12
 nhid = 1050

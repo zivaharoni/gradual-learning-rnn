@@ -79,11 +79,11 @@ parser.add_argument('--max_seq_len_delta', type=int, default=40,
                     help='max sequence length')
 parser.add_argument('--lwgc', default=True, help='use layer-wise gradient clipping')
 parser.add_argument('--single_gpu', action='store_true', help='use single GPU')
-parser.add_argument('--gpu', type=str, default='0',
+parser.add_argument('--gpu', type=str, default=None,
                     help='set gpu device ID (-1 for cpu)')
 args = parser.parse_args()
 
-if args.gpu != '0':
+if args.gpu is not None:
     args.cuda = True
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 else:
