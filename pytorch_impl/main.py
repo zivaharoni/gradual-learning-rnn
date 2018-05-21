@@ -121,6 +121,9 @@ if args.GL and not args.continue_train:
 if args.dir is not None:
     args.save = args.dir + '/' + args.save
 
+if not os.path.exists(args.save):
+    os.makedirs(args.save)
+
 args.clip = ast.literal_eval(args.clip)
 if not args.lwgc:
     args.clip = args.clip[0]
