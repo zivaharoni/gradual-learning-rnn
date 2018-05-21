@@ -3,11 +3,11 @@
 ## Intro
 
 We present an implementation of the algorithms that are presented in our paper:
-> [Gradual Learning of Recurrent Neural Networks](https://arxiv.org/abs/1708.08863)
-> Ziv Aharoni, Gal Rattner and Haim Permutter
+> [Gradual Learning of Recurrent Neural Networks](https://arxiv.org/abs/1708.08863),
+> by Ziv Aharoni, Gal Rattner and Haim Permutter
 
 The results from the paper were obtained by the pytorch implementation as given in 
-> zivaharoni/gradual-learning-rnn/pytorch.
+> zivaharoni/gradual-learning-rnn/pytorch_impl.
 
 We also present also a tensorflow implementation even though that it it is significantly slower.
 
