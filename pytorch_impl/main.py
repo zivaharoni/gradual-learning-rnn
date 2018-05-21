@@ -16,7 +16,7 @@ from utils import batchify, get_batch, repackage_hidden, create_exp_dir, save_ch
 
 
 parser = argparse.ArgumentParser(description='PyTorch PennTreeBank/WikiText2 RNN/LSTM Language Model')
-parser.add_argument('--data', type=str, default='../data/penn/',
+parser.add_argument('--data', type=str, default='../data',
                     help='location of the data corpus')
 parser.add_argument('--model', type=str, default='LSTM',
                     help='type of recurrent net (RNN_TANH, RNN_RELU, LSTM, GRU, SRU)')
@@ -114,6 +114,9 @@ if args.dropoutl < 0:
     args.dropoutl = args.dropouth[-1]
 if args.small_batch_size < 0:
     args.small_batch_size = args.batch_size
+
+if not os.path.exists(args.dir):
+    os.makedirs(args.dir)
 
 # adapt args.save directory
 if args.GL and not args.continue_train:
