@@ -1,16 +1,12 @@
 ###############################################################################
 # GL-LWGC-LSTM
 ###############################################################################
-# PennTreebank/WikiText-2 word-level prediction state-of-the-art training code
+# WikiText-2 word-level language modeling state-of-the-art training code
 # code is based on open source implementation of MoS article:
 # https://arxiv.org/pdf/1711.03953.pdf by Zhilin Yang et. al.
 # found at https://github.com/zihangdai/mos
-# for further info please see LICENSE.md and README
-# Gal Rattner
-# May 2018
 
-# script log files are saved by default under running directory in ./GL/Lx/TEST/
-# the logging path can be changed by setting 'dirs' under general serrings below
+
 
 import os
 import time
@@ -30,7 +26,7 @@ nhid = 1050
 nhidlast = 1050
 emsize = 300
 n_experts = 15
-epochs = 600
+epochs = 400
 sim_name = 'EXP-' + str(int(time.time()))
 
 ###############################################################################
