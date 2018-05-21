@@ -70,7 +70,7 @@ line = 'python main.py'  + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dir='        + dirs + \
+       ' --dir='         + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -231,7 +231,7 @@ line = 'python main.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dir='        + dirs + \
+       ' --dir='         + dirs + \
        ' --load_prev='   + load_prev + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
