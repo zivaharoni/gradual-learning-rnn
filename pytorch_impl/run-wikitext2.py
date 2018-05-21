@@ -103,8 +103,7 @@ line = 'python finetune.py' + \
        ' --nlayers='     + str(nlayers) + \
        ' --gpu='         + gpu + \
        ' --save='        + save + \
-       ' --seed='        + str(seed) + \
-       ' --GL='          + 'True'
+       ' --seed='        + str(seed)
 os.system(line)
 
 
@@ -184,8 +183,7 @@ line = 'python finetune.py' + \
        ' --nlayers='     + str(nlayers) + \
        ' --gpu='         + gpu + \
        ' --save='        + save + \
-       ' --seed='        + str(seed) + \
-       ' --GL='          + 'True'
+       ' --seed='        + str(seed)
 os.system(line)
 
 
@@ -264,8 +262,7 @@ line = 'python finetune.py' + \
        ' --nlayers='     + str(nlayers) + \
        ' --gpu='         + gpu + \
        ' --save='        + save + \
-       ' --seed='        + str(seed) + \
-       ' --GL='          + 'True'
+       ' --seed='        + str(seed)
 os.system(line)
 
 ###############################################################################
