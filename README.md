@@ -2,12 +2,16 @@
 
 ## Intro
 
-We present an implementation of the current state-of-the-art algorithm on Penn Treebank and WikiText-2 text prediction corpuses.
+We present an implementation of the algorithms that are presented in our paper:
+> [Gradual Learning of Recurrent Neural Networks](https://arxiv.org/abs/1708.08863)
+> Ziv Aharoni, Gal Rattner and Haim Permutter
 
-Described in the article:
-[Gradual Learning of Recurrent Neural Networks](https://arxiv.org/abs/1708.08863)
+The results from the paper were obtained by the pytorch implementation as given in 
+> zivaharoni/gradual-learning-rnn/pytorch.
+We also present also a tensorflow implementation even though that it it is siginificantly slower.
 
-By Ziv Aharoni, Gal Rattner and Haim Permutter
+The pytorch implementation achieves language modeling state-of-the-art results on the Penn Treebank and WikiText-2 corpuses.
+
 
 Preprint 2018
 
@@ -15,9 +19,6 @@ Preprint 2018
 
 Python 3.6, PyTorch 0.2.0
 
-## Download the data
-
-```./get_data.sh```
 
 ## Results reproduction
 
@@ -25,20 +26,25 @@ Python 3.6, PyTorch 0.2.0
 
 Train the model:
 
-```python run-gl-lwgc.py```
+```python run-ptb.py```
 
-*See run-gl-lwgc.py script for hyper-parameters and configurations.
-Script log files are saved by default under running directory in './GL/Lx/TEST/', the logging path can be changed by setting 'dirs' under general serrings in the script
+If you wish to run on multiple GPUs use:
 
-### Penn Treebank (multi-GPUs)
+```python run-ptb.py --gpu=0,1,2 ```
 
-Set number of GPUs using CUDA_VISIBLE_DEVICES variable:
+### Wikitext 2
 
-```CUDA_VISIBLE_DEVICES=0,1,2 ```
+Train the model:
 
- then change gpu settings in run-gl-lwgc.py script to a list of gpu numbers (for example 'gpu=0,1,2') and run the script:
+```python run-wikitext2.py```
 
-```python run-gl-lwgc.py```
+If you wish to run on multiple GPUs use:
+
+```python run-wikitext2.py --gpu=0,1,2 ```
+
+
+*See run-XXXX.py script for hyper-parameters and configurations.
+Script log files are saved by default under running directory in './GL/Lx/EXP0001/', the logging path can be changed by setting 'dirs' under general serrings in the script
 
 ## Acknowledgements
 
