@@ -5,7 +5,7 @@
 # code is based on open source implementation of MoS article:
 # https://arxiv.org/pdf/1711.03953.pdf by Zhilin Yang et. al.
 # found at https://github.com/zihangdai/mos
-# for further info please see LICENSE and README
+# for further info please see LICENSE.md and README
 # Gal Rattner
 # May 2018
 
