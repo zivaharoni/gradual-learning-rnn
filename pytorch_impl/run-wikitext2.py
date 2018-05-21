@@ -43,7 +43,7 @@ save = 'EXP0001'
 
 # command line
 line = 'python main.py'  + \
-       ' --data='        + '../data/wikitext-2' + \
+       ' --data='        + '../data/wiki2' + \
        ' --batch_size='  + str(batch_size) + \
        ' --clip='        + str(clip) + \
        ' --dropout='     + str(dropo) + \
@@ -85,7 +85,7 @@ seed = 28
 save = dirs + '/L0/EXP0001/'
 
 line = 'python finetune.py' + \
-       ' --data='        + '../data/wikitext-2' + \
+       ' --data='        + '../data/wiki2' + \
        ' --batch_size='  + str(batch_size) + \
        ' --clip='        + str(clip) + \
        ' --dropout='     + str(dropo) + \
@@ -129,7 +129,7 @@ save = 'EXP0001'
 
 # command line
 line = 'python main.py' + \
-       ' --data='        + '../data/wikitext-2' + \
+       ' --data='        + '../data/wiki2' + \
        ' --batch_size='  + str(batch_size) + \
        ' --clip='        + str(clip) + \
        ' --dropout='     + str(dropo) + \
@@ -171,7 +171,7 @@ seed = 28
 save = dirs + '/L1/EXP0001/'
 
 line = 'python finetune.py' + \
-       ' --data='        + '../data/wikitext-2' + \
+       ' --data='        + '../data/wiki2' + \
        ' --batch_size='  + str(batch_size) + \
        ' --clip='        + str(clip) + \
        ' --dropout='     + str(dropo) + \
@@ -214,7 +214,7 @@ save = 'EXP0001'
 
 # command line
 line = 'python main.py' + \
-       ' --data='        + '../data/wikitext-2' + \
+       ' --data='        + '../data/wiki2' + \
        ' --batch_size='  + str(batch_size) + \
        ' --clip='        + str(clip) + \
        ' --dropout='     + str(dropo) + \
@@ -256,7 +256,7 @@ seed = 28
 save = dirs + '/L2/EXP0001/'
 
 line = 'python finetune.py' + \
-       ' --data='        + '../data/wikitext-2' + \
+       ' --data='        + '../data/wiki2' + \
        ' --batch_size='  + str(batch_size) + \
        ' --clip='        + str(clip) + \
        ' --dropout='     + str(dropo) + \

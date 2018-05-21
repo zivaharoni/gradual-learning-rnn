@@ -16,7 +16,7 @@ from utils import batchify, get_batch, repackage_hidden, create_exp_dir, save_ch
 
 
 parser = argparse.ArgumentParser(description='PyTorch PennTreeBank/WikiText2 RNN/LSTM Language Model')
-parser.add_argument('--data', type=str, default='../data',
+parser.add_argument('--data', type=str, default='../data/ptb',
                     help='location of the data corpus')
 parser.add_argument('--model', type=str, default='LSTM',
                     help='type of recurrent net (RNN_TANH, RNN_RELU, LSTM, GRU, SRU)')
