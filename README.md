@@ -43,7 +43,7 @@ If you wish to run on multiple GPUs use:
 
 
 *See run-XXXX.py script for hyper-parameters and configurations.
-Script log files are saved by default under running directory in './GL/Lx/EXP0001/', the logging path can be changed by setting 'dirs' under general serrings in the script
+Script log files are saved by default under running directory in './GL/Lx/EXPXXXX/', the logging path can be changed by setting 'dirs' under general serrings in the script
 
 ## Acknowledgements
 
