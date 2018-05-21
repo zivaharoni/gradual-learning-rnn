@@ -24,6 +24,7 @@ nhid = 960
 nhidlast = 960
 emsize = 280
 n_experts = 15
+epochs = 1
 
 ###############################################################################
 # Training Layer-0
@@ -32,7 +33,6 @@ droph = '[0.225]'
 clip = '[0.05,0.15,0.15]'
 nlayers = 1
 start_layer = 0
-epochs = 600
 lr = 20
 drope = 0.1
 dropi = 0.4
@@ -75,7 +75,6 @@ droph = '[0.225]'
 clip = '[0.05,0.15,0.15]'
 nlayers = 1
 start_layer = 0
-epochs = 600
 lr = 25.
 drope = 0.1
 dropi = 0.4
@@ -105,7 +104,6 @@ line = 'python finetune.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -117,7 +115,6 @@ droph = '[0.24,0.21]'
 clip = '[0.035,0.12,0.16,0.16]'
 nlayers = 2
 start_layer = 1
-epochs = 600
 lr = 20
 drope = 0.1
 dropi = 0.425
@@ -161,7 +158,6 @@ droph = '[0.24,0.22]'
 clip = '[0.035,0.12,0.16,0.16]'
 nlayers = 2
 start_layer = 1
-epochs = 600
 lr = 25
 drope = 0.1
 dropi = 0.45
@@ -191,7 +187,6 @@ line = 'python finetune.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -203,7 +198,6 @@ droph = '[0.25,0.23,0.22]'
 clip = '[0.035,0.13,0.15,0.16,0.17]'
 nlayers = 2
 start_layer = 1
-epochs = 600
 lr = 20
 drope = 0.1
 dropi = 0.45
@@ -246,7 +240,6 @@ droph = '[0.25,0.23,0.22]'
 clip = '[0.035,0.14,0.15,0.17,0.17]'
 nlayers = 2
 start_layer = 1
-epochs = 600
 lr = 25
 drope = 0.1
 dropi = 0.45
@@ -276,7 +269,6 @@ line = 'python finetune.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
