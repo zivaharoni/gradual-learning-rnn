@@ -9,7 +9,7 @@
 # Gal Rattner
 # May 2018
 
-# script log files are saved by default under running dirsectory in ./GL/Lx/TEST/
+# script log files are saved by default under running directory in ./GL/Lx/TEST/
 # the logging path can be changed by setting 'dirs' under general serrings below
 
 import os
@@ -63,7 +63,7 @@ line = 'python main.py'  + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dirs='        + dirs + \
+       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -105,7 +105,7 @@ line = 'python finetune.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dirs='        + dirs + \
+       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -149,7 +149,7 @@ line = 'python main.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dirs='        + dirs + \
+       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -191,7 +191,7 @@ line = 'python finetune.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dirs='        + dirs + \
+       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -234,7 +234,7 @@ line = 'python main.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dirs='        + dirs + \
+       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -276,7 +276,7 @@ line = 'python finetune.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dirs='        + dirs + \
+       ' --dir='        + dirs + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
