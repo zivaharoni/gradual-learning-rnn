@@ -126,7 +126,7 @@ dropl = 0.29
 dropo = 0.35
 seed = 28
 save = sim_name
-
+load_prev = dirs + '/L0/' + sim_name + '/'
 
 # command line
 line = 'python main.py' + \
@@ -150,7 +150,8 @@ line = 'python main.py' + \
        ' --save='        + save + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
-       ' --dir='        + dirs + \
+       ' --dir='         + dirs + \
+       ' --load_prev='   + load_prev + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
@@ -206,6 +207,7 @@ dropl = 0.35
 dropo = 0.45
 seed = 28
 save = sim_name
+load_prev = dirs + '/L1/' + sim_name + '/'
 
 # command line
 line = 'python main.py' + \
@@ -230,6 +232,7 @@ line = 'python main.py' + \
        ' --seed='        + str(seed) + \
        ' --GL='          + 'True' + \
        ' --dir='        + dirs + \
+       ' --load_prev='   + load_prev + \
        ' --start_layer=' + str(start_layer)
 os.system(line)
 
