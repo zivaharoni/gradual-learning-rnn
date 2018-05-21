@@ -6,8 +6,6 @@
 # https://arxiv.org/pdf/1711.03953.pdf by Zhilin Yang et. al.
 # found at https://github.com/zihangdai/mos
 
-
-
 import os
 import time
 import argparse
