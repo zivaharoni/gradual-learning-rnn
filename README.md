@@ -8,12 +8,11 @@ We present an implementation of the algorithms that are presented in our paper:
 
 The results from the paper were obtained by the pytorch implementation as given in 
 > zivaharoni/gradual-learning-rnn/pytorch.
-We also present also a tensorflow implementation even though that it it is siginificantly slower.
+
+We also present also a tensorflow implementation even though that it it is significantly slower.
 
 The pytorch implementation achieves language modeling state-of-the-art results on the Penn Treebank and WikiText-2 corpuses.
 
-
-Preprint 2018
 
 ## Requirements
 
