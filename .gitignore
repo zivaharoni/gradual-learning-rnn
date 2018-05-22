@@ -1,6 +1,0 @@
-results/*
-.idea/*
-__pycache__/*
-tensorflow_impl/runfile.py
-tensorflow_impl/summary.csv
-summary.csv
