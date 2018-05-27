@@ -19,7 +19,7 @@ args = parser.parse_args()
 ###############################################################################
 gpu = args.gpu
 dirs = 'WIKITEXT-2'
-batch_size = 12
+batch_size = 15
 nhid = 1050
 nhidlast = 1050
 emsize = 300
