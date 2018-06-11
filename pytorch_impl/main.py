@@ -121,7 +121,6 @@ if not os.path.exists(args.dir):
 if not os.path.exists(args.dir + '/L' + str(args.nlayers-1)):
     os.makedirs(args.dir + '/L' + str(args.nlayers-1))
 
-
 # adapt args.save directory
 if args.GL and not args.continue_train:
     args.save = 'L' + str(args.start_layer) + '/' + args.save
