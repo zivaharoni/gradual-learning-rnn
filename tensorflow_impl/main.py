@@ -63,6 +63,7 @@ def build_graph(config, is_training):
 
     return train_model, train_writer, valid_model, valid_writer, test_model, test_writer, saver, restore_saver
 
+
 def train_epoch(session, model, verbose=True):
     """run the given model over its data"""
     start_time = time.time()
@@ -468,7 +469,7 @@ if __name__ == "__main__":
     ap.add_argument("--ckpt_file",          type=str, default=None, help="file path for restore")
     ap.add_argument("--start_layer",        type=int, default=None, help="train from layer")
     ap.add_argument("--name",               type=str, default="debug", help="simulation name")
-    ap.add_argument("--model",              type=str, default="small", help="model name")
+    ap.add_argument("--model",              type=str, default="mos_gl", help="model name")
     ap.add_argument("--seed",               type=int, default=None, help="seed")
     ap.add_argument("--data",               type=str, default="ptb", help="data type")
     ap.add_argument("--opt",                type=str, default=None, help="optimizer name")
@@ -527,6 +528,7 @@ if __name__ == "__main__":
     args = ap.parse_args()
 
     ###################################### general configs ######################################
+    print(args.data)
     if args.data == "ptb":
         config_pool = ptb_config
     elif args.data == "wiki2":
@@ -590,7 +592,7 @@ if __name__ == "__main__":
     logger.info("cmd line: python " + " ".join(sys.argv))
     ###################################### read data ###################################################
 
-    data_path = "./data"
+    data_path = os.path.join("..", "data")
 
     raw_data = ptb_reader.ptb_raw_data(data_path, args.data)
     train_data, valid_data, test_data, _ = raw_data

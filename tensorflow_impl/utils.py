@@ -39,14 +39,8 @@ def read_flags(config, args):
 
 
 def get_config(config_pool, config_name):
-    if config_name == "small":
-        return config_pool.SmallConfig()
-    if config_name == "mos":
-        return config_pool.MosConfig()
     if config_name == "mos_gl":
-        return config_pool.MosGL2Config()
-    if config_name == "best":
-        return config_pool.BestConfig()
+        return config_pool.MosGLConfig()
     else:
         raise ValueError("Invalid model: %s", config_name)
 
